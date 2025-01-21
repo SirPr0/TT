@@ -202,6 +202,40 @@
             font-size: 24px;
             font-weight: bold;
         }
+
+        .player-id-container {
+            width: calc(100% - 20px);
+            height: calc(100% - 40px);
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .player-id-container input {
+            width: 100%;
+            padding: 5px;
+            background-color: rgba(50, 50, 50, 0.9);
+            border: none;
+            color: #ffffff;
+            border-radius: 5px;
+        }
+
+        .player-id-container button {
+            padding: 5px;
+            background-color: rgba(40, 40, 40, 0.9);
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .player-id-container button:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -217,6 +251,7 @@
         <button class="toggle-button" id="toggleNotesButton">Hide Notes</button>
         <button class="toggle-button" id="toggleTimerButton">Hide Timer</button>
         <button class="toggle-button" id="toggleYoutubeButton">Hide YouTube</button>
+        <button class="toggle-button" id="togglePlayerIdButton">Hide Player ID</button>
     </div>
 
     <!-- Notes Window -->
@@ -261,6 +296,17 @@
         </div>
     </div>
 
+    <!-- Player ID Window -->
+    <div class="window" id="playerIdWindow">
+        <div class="title-bar" id="playerIdTitleBar">
+            Player ID
+        </div>
+        <div class="player-id-container">
+            <input type="text" id="playerIdInput" placeholder="Enter Player ID">
+            <button id="trackPlayerButton">Start Tracking</button>
+        </div>
+    </div>
+
     <script>
         const notesWindow = document.getElementById('notesWindow');
         const notesTitleBar = document.getElementById('notesTitleBar');
@@ -270,6 +316,7 @@
         const toggleNotesButton = document.getElementById('toggleNotesButton');
         const toggleTimerButton = document.getElementById('toggleTimerButton');
         const toggleYoutubeButton = document.getElementById('toggleYoutubeButton');
+        const togglePlayerIdButton = document.getElementById('togglePlayerIdButton');
 
         const youtubeWindow = document.getElementById('youtubeWindow');
         const youtubeTitleBar = document.getElementById('youtubeTitleBar');
@@ -287,14 +334,23 @@
         const pauseTimerButton = document.getElementById('pauseTimerButton');
         const stopTimerButton = document.getElementById('stopTimerButton');
 
+        const playerIdWindow = document.getElementById('playerIdWindow');
+        const playerIdTitleBar = document.getElementById('playerIdTitleBar');
+        const playerIdInput = document.getElementById('playerIdInput');
+        const trackPlayerButton = document.getElementById('trackPlayerButton');
+
         let isDraggingNotes = false;
         let isDraggingYoutube = false;
         let isDraggingTimer = false;
+        let isDraggingPlayerId = false;
         let offsetX, offsetY;
 
         let timerInterval;
         let timeRemaining = 0;
         let isPaused = false;
+
+        let trackingInterval;
+        let isTracking = false;
 
         // Make the Notes Window draggable
         notesTitleBar.addEventListener('mousedown', (e) => {
@@ -317,6 +373,13 @@
             offsetY = e.clientY - timerWindow.getBoundingClientRect().top;
         });
 
+        // Make the Player ID Window draggable
+        playerIdTitleBar.addEventListener('mousedown', (e) => {
+            isDraggingPlayerId = true;
+            offsetX = e.clientX - playerIdWindow.getBoundingClientRect().left;
+            offsetY = e.clientY - playerIdWindow.getBoundingClientRect().top;
+        });
+
         document.addEventListener('mousemove', (e) => {
             if (isDraggingNotes) {
                 notesWindow.style.left = `${e.clientX - offsetX}px`;
@@ -330,12 +393,17 @@
                 timerWindow.style.left = `${e.clientX - offsetX}px`;
                 timerWindow.style.top = `${e.clientY - offsetY}px`;
             }
+            if (isDraggingPlayerId) {
+                playerIdWindow.style.left = `${e.clientX - offsetX}px`;
+                playerIdWindow.style.top = `${e.clientY - offsetY}px`;
+            }
         });
 
         document.addEventListener('mouseup', () => {
             isDraggingNotes = false;
             isDraggingYoutube = false;
             isDraggingTimer = false;
+            isDraggingPlayerId = false;
         });
 
         // Toggle settings panel visibility
@@ -353,6 +421,7 @@
             notesWindow.style.opacity = opacity;
             youtubeWindow.style.opacity = opacity;
             timerWindow.style.opacity = opacity;
+            playerIdWindow.style.opacity = opacity;
         });
 
         // Toggle Notes Window visibility
@@ -385,6 +454,17 @@
             } else {
                 youtubeWindow.style.display = 'none';
                 toggleYoutubeButton.textContent = 'Show YouTube';
+            }
+        });
+
+        // Toggle Player ID Window visibility
+        togglePlayerIdButton.addEventListener('click', () => {
+            if (playerIdWindow.style.display === 'none') {
+                playerIdWindow.style.display = 'block';
+                togglePlayerIdButton.textContent = 'Hide Player ID';
+            } else {
+                playerIdWindow.style.display = 'none';
+                togglePlayerIdButton.textContent = 'Show Player ID';
             }
         });
 
@@ -483,6 +563,54 @@
             const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
             const match = url.match(regex);
             return match ? match[1] : null;
+        }
+
+        // Player tracking functionality
+        trackPlayerButton.addEventListener('click', () => {
+            const playerId = playerIdInput.value.trim();
+            if (!playerId) {
+                alert("Please enter a valid Player ID.");
+                return;
+            }
+
+            if (isTracking) {
+                clearInterval(trackingInterval);
+                trackPlayerButton.textContent = "Start Tracking";
+                isTracking = false;
+            } else {
+                trackPlayerButton.textContent = "Stop Tracking";
+                isTracking = true;
+                fetchPlayerLocation(playerId);
+                trackingInterval = setInterval(() => fetchPlayerLocation(playerId), 60000); // Every 60 seconds
+            }
+        });
+
+        async function fetchPlayerLocation(playerId) {
+            const publicKey = "178697_XuLpuoXZGGEAhaLfrg";
+            const privateKey = "dp3ulbr2tMhgjxgUILJiiC90NFEnriKzbJEH0";
+            const url = `https://api.tycoon.community/api/user/${playerId}`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        "Authorization": `Basic ${btoa(`${publicKey}:${privateKey}`)}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch player location.");
+                }
+
+                const data = await response.json();
+                const { x, y } = data.location;
+
+                // Place a waypoint on the map (for demonstration, we'll log the coordinates)
+                console.log(`Waypoint placed at: (${x}, ${y})`);
+                alert(`Waypoint placed at: (${x}, ${y})`);
+            } catch (error) {
+                console.error("Error fetching player location:", error);
+                alert("Error fetching player location. Please check the Player ID and try again.");
+            }
         }
     </script>
 </body>
