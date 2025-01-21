@@ -98,6 +98,21 @@
             opacity: 1;
         }
 
+        #youtubePlayer {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #youtubePlayer iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 5px;
+        }
+
         .settings-button {
             position: fixed;
             top: 10px;
@@ -199,7 +214,9 @@
             <label for="slider">Transparency:</label>
             <input type="range" min="0" max="1" value="1" step="0.01" class="slider" id="slider">
         </div>
-        <button class="toggle-button" id="toggleButton">Hide Notes</button>
+        <button class="toggle-button" id="toggleNotesButton">Hide Notes</button>
+        <button class="toggle-button" id="toggleTimerButton">Hide Timer</button>
+        <button class="toggle-button" id="toggleYoutubeButton">Hide YouTube</button>
     </div>
 
     <!-- Notes Window -->
@@ -250,7 +267,9 @@
         const settingsButton = document.getElementById('settingsButton');
         const settingsPanel = document.getElementById('settingsPanel');
         const slider = document.getElementById('slider');
-        const toggleButton = document.getElementById('toggleButton');
+        const toggleNotesButton = document.getElementById('toggleNotesButton');
+        const toggleTimerButton = document.getElementById('toggleTimerButton');
+        const toggleYoutubeButton = document.getElementById('toggleYoutubeButton');
 
         const youtubeWindow = document.getElementById('youtubeWindow');
         const youtubeTitleBar = document.getElementById('youtubeTitleBar');
@@ -328,19 +347,44 @@
             }
         });
 
-        // Control Notes Window transparency using the slider
+        // Control all windows' transparency using the slider
         slider.addEventListener('input', () => {
-            notesWindow.style.opacity = slider.value;
+            const opacity = slider.value;
+            notesWindow.style.opacity = opacity;
+            youtubeWindow.style.opacity = opacity;
+            timerWindow.style.opacity = opacity;
         });
 
         // Toggle Notes Window visibility
-        toggleButton.addEventListener('click', () => {
+        toggleNotesButton.addEventListener('click', () => {
             if (notesWindow.style.display === 'none') {
                 notesWindow.style.display = 'block';
-                toggleButton.textContent = 'Hide Notes';
+                toggleNotesButton.textContent = 'Hide Notes';
             } else {
                 notesWindow.style.display = 'none';
-                toggleButton.textContent = 'Show Notes';
+                toggleNotesButton.textContent = 'Show Notes';
+            }
+        });
+
+        // Toggle Timer Window visibility
+        toggleTimerButton.addEventListener('click', () => {
+            if (timerWindow.style.display === 'none') {
+                timerWindow.style.display = 'block';
+                toggleTimerButton.textContent = 'Hide Timer';
+            } else {
+                timerWindow.style.display = 'none';
+                toggleTimerButton.textContent = 'Show Timer';
+            }
+        });
+
+        // Toggle YouTube Window visibility
+        toggleYoutubeButton.addEventListener('click', () => {
+            if (youtubeWindow.style.display === 'none') {
+                youtubeWindow.style.display = 'block';
+                toggleYoutubeButton.textContent = 'Hide YouTube';
+            } else {
+                youtubeWindow.style.display = 'none';
+                toggleYoutubeButton.textContent = 'Show YouTube';
             }
         });
 
