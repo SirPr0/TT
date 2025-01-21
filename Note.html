@@ -202,6 +202,16 @@
             font-size: 24px;
             font-weight: bold;
         }
+
+        /* Footer text */
+        .footer-text {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            font-size: 12px;
+            color: #888;
+            user-select: none;
+        }
     </style>
 </head>
 <body>
@@ -224,7 +234,7 @@
         <div class="title-bar" id="notesTitleBar">
             Notes
         </div>
-        <textarea class="text-area" placeholder="Type something..."></textarea>
+        <textarea class="text-area" id="notesTextArea" placeholder="Type something..."></textarea>
     </div>
 
     <!-- YouTube Window (Visible by Default) -->
@@ -257,13 +267,18 @@
                 <button id="startTimerButton">Start</button>
                 <button id="pauseTimerButton" disabled>Pause</button>
                 <button id="stopTimerButton" disabled>Stop</button>
+                <button id="resetTimerButton">Reset</button>
             </div>
         </div>
     </div>
 
+    <!-- Footer Text -->
+    <div class="footer-text">Made by SirPro (totally not using chat-gpt :heh:)</div>
+
     <script>
         const notesWindow = document.getElementById('notesWindow');
         const notesTitleBar = document.getElementById('notesTitleBar');
+        const notesTextArea = document.getElementById('notesTextArea');
         const settingsButton = document.getElementById('settingsButton');
         const settingsPanel = document.getElementById('settingsPanel');
         const slider = document.getElementById('slider');
@@ -286,6 +301,7 @@
         const startTimerButton = document.getElementById('startTimerButton');
         const pauseTimerButton = document.getElementById('pauseTimerButton');
         const stopTimerButton = document.getElementById('stopTimerButton');
+        const resetTimerButton = document.getElementById('resetTimerButton');
 
         let isDraggingNotes = false;
         let isDraggingYoutube = false;
@@ -396,6 +412,7 @@
         startTimerButton.addEventListener('click', startTimer);
         pauseTimerButton.addEventListener('click', pauseTimer);
         stopTimerButton.addEventListener('click', stopTimer);
+        resetTimerButton.addEventListener('click', resetTimer);
 
         function addTime(minutes) {
             timeRemaining += minutes * 60;
@@ -434,6 +451,13 @@
         }
 
         function stopTimer() {
+            clearInterval(timerInterval);
+            timeRemaining = 0;
+            updateTimerDisplay();
+            resetButtons();
+        }
+
+        function resetTimer() {
             clearInterval(timerInterval);
             timeRemaining = 0;
             updateTimerDisplay();
