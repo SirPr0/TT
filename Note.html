@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transparent Draggable Text Window</title>
+    <title>Transparent Draggable Windows</title>
     <style>
         body {
             margin: 0;
@@ -58,97 +58,388 @@
             color: #888;
         }
 
-        .slider-container {
+        .youtube-container {
+            width: calc(100% - 20px);
+            height: calc(100% - 40px);
+            margin: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .youtube-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .youtube-input-container input {
+            flex: 1;
+            padding: 5px;
+            background-color: rgba(50, 50, 50, 0.9);
+            border: none;
+            color: #ffffff;
+            border-radius: 5px;
+        }
+
+        .youtube-input-container button {
+            padding: 5px 10px;
+            background-color: rgba(40, 40, 40, 0.9);
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .youtube-input-container button:hover {
+            opacity: 1;
+        }
+
+        .settings-button {
             position: fixed;
             top: 10px;
             right: 10px;
-            width: 100px;
+            background-color: rgba(30, 30, 30, 0.9);
+            color: #ffffff;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 16px;
             opacity: 0.7;
             transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .slider-container:hover {
+        .settings-button:hover {
             opacity: 1;
         }
 
-        .slider {
-            -webkit-appearance: none;
+        .settings-panel {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            width: 200px;
+            background-color: rgba(30, 30, 30, 0.9);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default */
+        }
+
+        .settings-panel .slider-container {
+            margin-bottom: 10px;
+        }
+
+        .settings-panel .slider {
             width: 100%;
-            height: 10px;
-            background: rgba(30, 30, 30, 0.9);
+        }
+
+        .settings-panel .toggle-button {
+            width: 100%;
+            padding: 5px;
+            background-color: rgba(40, 40, 40, 0.9);
+            color: #ffffff;
+            border: none;
             border-radius: 5px;
-            outline: none;
+            cursor: pointer;
+            font-size: 14px;
             opacity: 0.7;
             transition: opacity 0.3s ease;
         }
 
-        .slider:hover {
+        .settings-panel .toggle-button:hover {
             opacity: 1;
         }
 
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #ffffff;
-            border-radius: 50%;
-            cursor: pointer;
+        .timer-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
         }
 
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: #ffffff;
-            border-radius: 50%;
+        .timer-controls button {
+            padding: 5px 10px;
+            background-color: rgba(40, 40, 40, 0.9);
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
             cursor: pointer;
+            font-size: 14px;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .timer-controls button:hover {
+            opacity: 1;
+        }
+
+        #timerDisplay {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 24px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Transparent slider control -->
-    <div class="slider-container">
-        <input type="range" min="0" max="1" value="1" step="0.01" class="slider" id="slider">
+    <!-- Settings Button (Gear Icon) -->
+    <button class="settings-button" id="settingsButton">⚙️</button>
+
+    <!-- Settings Panel -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="slider-container">
+            <label for="slider">Transparency:</label>
+            <input type="range" min="0" max="1" value="1" step="0.01" class="slider" id="slider">
+        </div>
+        <button class="toggle-button" id="toggleButton">Hide Notes</button>
     </div>
 
-    <!-- Draggable window -->
-    <div class="window" id="window">
-        <div class="title-bar" id="titleBar">
+    <!-- Notes Window -->
+    <div class="window" id="notesWindow">
+        <div class="title-bar" id="notesTitleBar">
             Notes
         </div>
         <textarea class="text-area" placeholder="Type something..."></textarea>
     </div>
 
-    <script>
-        const windowElement = document.getElementById('window');
-        const titleBar = document.getElementById('titleBar');
-        const slider = document.getElementById('slider');
+    <!-- YouTube Window -->
+    <div class="window" id="youtubeWindow">
+        <div class="title-bar" id="youtubeTitleBar">
+            YouTube
+        </div>
+        <div class="youtube-container">
+            <div class="youtube-input-container">
+                <input type="text" id="youtubeUrl" placeholder="Paste YouTube URL here">
+                <button id="runYoutubeButton">▶️</button>
+            </div>
+            <div id="youtubePlayer"></div>
+        </div>
+    </div>
 
-        let isDragging = false;
+    <!-- Timer Window -->
+    <div class="window" id="timerWindow">
+        <div class="title-bar" id="timerTitleBar">
+            Stop Timer
+        </div>
+        <div style="padding: 10px;">
+            <div class="timer-controls">
+                <button id="add1Minute">+1</button>
+                <button id="add5Minutes">+5</button>
+                <button id="add10Minutes">+10</button>
+            </div>
+            <div id="timerDisplay">00:00</div>
+            <div class="timer-controls">
+                <button id="startTimerButton">Start</button>
+                <button id="pauseTimerButton" disabled>Pause</button>
+                <button id="stopTimerButton" disabled>Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const notesWindow = document.getElementById('notesWindow');
+        const notesTitleBar = document.getElementById('notesTitleBar');
+        const settingsButton = document.getElementById('settingsButton');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const slider = document.getElementById('slider');
+        const toggleButton = document.getElementById('toggleButton');
+
+        const youtubeWindow = document.getElementById('youtubeWindow');
+        const youtubeTitleBar = document.getElementById('youtubeTitleBar');
+        const youtubeUrlInput = document.getElementById('youtubeUrl');
+        const runYoutubeButton = document.getElementById('runYoutubeButton');
+        const youtubePlayer = document.getElementById('youtubePlayer');
+
+        const timerWindow = document.getElementById('timerWindow');
+        const timerTitleBar = document.getElementById('timerTitleBar');
+        const add1Minute = document.getElementById('add1Minute');
+        const add5Minutes = document.getElementById('add5Minutes');
+        const add10Minutes = document.getElementById('add10Minutes');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startTimerButton = document.getElementById('startTimerButton');
+        const pauseTimerButton = document.getElementById('pauseTimerButton');
+        const stopTimerButton = document.getElementById('stopTimerButton');
+
+        let isDraggingNotes = false;
+        let isDraggingYoutube = false;
+        let isDraggingTimer = false;
         let offsetX, offsetY;
 
-        // Make the window draggable
-        titleBar.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            offsetX = e.clientX - windowElement.getBoundingClientRect().left;
-            offsetY = e.clientY - windowElement.getBoundingClientRect().top;
+        let timerInterval;
+        let timeRemaining = 0;
+        let isPaused = false;
+
+        // Make the Notes Window draggable
+        notesTitleBar.addEventListener('mousedown', (e) => {
+            isDraggingNotes = true;
+            offsetX = e.clientX - notesWindow.getBoundingClientRect().left;
+            offsetY = e.clientY - notesWindow.getBoundingClientRect().top;
+        });
+
+        // Make the YouTube Window draggable
+        youtubeTitleBar.addEventListener('mousedown', (e) => {
+            isDraggingYoutube = true;
+            offsetX = e.clientX - youtubeWindow.getBoundingClientRect().left;
+            offsetY = e.clientY - youtubeWindow.getBoundingClientRect().top;
+        });
+
+        // Make the Timer Window draggable
+        timerTitleBar.addEventListener('mousedown', (e) => {
+            isDraggingTimer = true;
+            offsetX = e.clientX - timerWindow.getBoundingClientRect().left;
+            offsetY = e.clientY - timerWindow.getBoundingClientRect().top;
         });
 
         document.addEventListener('mousemove', (e) => {
-            if (isDragging) {
-                windowElement.style.left = `${e.clientX - offsetX}px`;
-                windowElement.style.top = `${e.clientY - offsetY}px`;
+            if (isDraggingNotes) {
+                notesWindow.style.left = `${e.clientX - offsetX}px`;
+                notesWindow.style.top = `${e.clientY - offsetY}px`;
+            }
+            if (isDraggingYoutube) {
+                youtubeWindow.style.left = `${e.clientX - offsetX}px`;
+                youtubeWindow.style.top = `${e.clientY - offsetY}px`;
+            }
+            if (isDraggingTimer) {
+                timerWindow.style.left = `${e.clientX - offsetX}px`;
+                timerWindow.style.top = `${e.clientY - offsetY}px`;
             }
         });
 
         document.addEventListener('mouseup', () => {
-            isDragging = false;
+            isDraggingNotes = false;
+            isDraggingYoutube = false;
+            isDraggingTimer = false;
         });
 
-        // Control window transparency using the slider
-        slider.addEventListener('input', () => {
-            windowElement.style.opacity = slider.value;
+        // Toggle settings panel visibility
+        settingsButton.addEventListener('click', () => {
+            if (settingsPanel.style.display === 'none' || settingsPanel.style.display === '') {
+                settingsPanel.style.display = 'block';
+            } else {
+                settingsPanel.style.display = 'none';
+            }
         });
+
+        // Control Notes Window transparency using the slider
+        slider.addEventListener('input', () => {
+            notesWindow.style.opacity = slider.value;
+        });
+
+        // Toggle Notes Window visibility
+        toggleButton.addEventListener('click', () => {
+            if (notesWindow.style.display === 'none') {
+                notesWindow.style.display = 'block';
+                toggleButton.textContent = 'Hide Notes';
+            } else {
+                notesWindow.style.display = 'none';
+                toggleButton.textContent = 'Show Notes';
+            }
+        });
+
+        // Timer functionality
+        add1Minute.addEventListener('click', () => addTime(1));
+        add5Minutes.addEventListener('click', () => addTime(5));
+        add10Minutes.addEventListener('click', () => addTime(10));
+
+        startTimerButton.addEventListener('click', startTimer);
+        pauseTimerButton.addEventListener('click', pauseTimer);
+        stopTimerButton.addEventListener('click', stopTimer);
+
+        function addTime(minutes) {
+            timeRemaining += minutes * 60;
+            updateTimerDisplay();
+            if (!timerInterval && !isPaused) {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (timeRemaining <= 0) return;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Time's up!");
+                    timerDisplay.textContent = "00:00";
+                    resetButtons();
+                    return;
+                }
+                timeRemaining--;
+                updateTimerDisplay();
+            }, 1000);
+            startTimerButton.disabled = true;
+            pauseTimerButton.disabled = false;
+            stopTimerButton.disabled = false;
+            isPaused = false;
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            startTimerButton.disabled = false;
+            pauseTimerButton.disabled = true;
+            stopTimerButton.disabled = false;
+            isPaused = true;
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timeRemaining = 0;
+            updateTimerDisplay();
+            resetButtons();
+        }
+
+        function resetButtons() {
+            startTimerButton.disabled = false;
+            pauseTimerButton.disabled = true;
+            stopTimerButton.disabled = true;
+            isPaused = false;
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        // YouTube functionality
+        runYoutubeButton.addEventListener('click', () => {
+            const url = youtubeUrlInput.value.trim();
+            if (!url) {
+                alert("Please paste a valid YouTube URL.");
+                return;
+            }
+
+            const videoId = extractYouTubeVideoId(url);
+            if (!videoId) {
+                alert("Invalid YouTube URL.");
+                return;
+            }
+
+            youtubePlayer.innerHTML = `
+                <iframe
+                    width="100%"
+                    height="100%"
+                    src="https://www.youtube.com/embed/${videoId}?autoplay=1"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            `;
+        });
+
+        function extractYouTubeVideoId(url) {
+            const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+            const match = url.match(regex);
+            return match ? match[1] : null;
+        }
     </script>
 </body>
 </html>
