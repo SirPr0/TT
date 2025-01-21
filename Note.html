@@ -214,20 +214,20 @@
             <label for="slider">Transparency:</label>
             <input type="range" min="0" max="1" value="1" step="0.01" class="slider" id="slider">
         </div>
-        <button class="toggle-button" id="toggleNotesButton">Hide Notes</button>
-        <button class="toggle-button" id="toggleTimerButton">Hide Timer</button>
+        <button class="toggle-button" id="toggleNotesButton">Show Notes</button>
+        <button class="toggle-button" id="toggleTimerButton">Show Timer</button>
         <button class="toggle-button" id="toggleYoutubeButton">Hide YouTube</button>
     </div>
 
-    <!-- Notes Window -->
-    <div class="window" id="notesWindow">
+    <!-- Notes Window (Hidden by Default) -->
+    <div class="window" id="notesWindow" style="display: none;">
         <div class="title-bar" id="notesTitleBar">
             Notes
         </div>
         <textarea class="text-area" placeholder="Type something..."></textarea>
     </div>
 
-    <!-- YouTube Window -->
+    <!-- YouTube Window (Visible by Default) -->
     <div class="window" id="youtubeWindow">
         <div class="title-bar" id="youtubeTitleBar">
             YouTube
@@ -241,8 +241,8 @@
         </div>
     </div>
 
-    <!-- Timer Window -->
-    <div class="window" id="timerWindow">
+    <!-- Timer Window (Hidden by Default) -->
+    <div class="window" id="timerWindow" style="display: none;">
         <div class="title-bar" id="timerTitleBar">
             Stop Timer
         </div>
