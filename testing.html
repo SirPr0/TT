@@ -400,7 +400,21 @@
     document.getElementById('load-video').addEventListener('click', () => {
       const url = document.getElementById('video-url').value;
       if (url) {
-        document.getElementById('video-frame').src = url;
+        let embedUrl;
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+          // Extract video ID from YouTube URL
+          const videoId = url.match(/(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          if (videoId && videoId[1]) {
+            embedUrl = `https://www.youtube.com/embed/${videoId[1]}`;
+          } else {
+            alert('Invalid YouTube URL');
+            return;
+          }
+        } else {
+          // For non-YouTube videos, use the URL directly
+          embedUrl = url;
+        }
+        document.getElementById('video-frame').src = embedUrl;
       }
     });
 
