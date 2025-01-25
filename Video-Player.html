@@ -242,6 +242,22 @@
     .watching-mode iframe {
       height: 100%;
     }
+
+    /* Super Secret Window Styles */
+    .secret-window {
+      width: 800px; /* 200% larger */
+      height: 600px; /* 200% larger */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%); /* Center the window */
+      position: fixed;
+      z-index: 1000;
+    }
+
+    .secret-window iframe {
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
@@ -302,7 +318,7 @@
       <button onclick="toggleWindow('timer-window')">Toggle Timer</button>
       <button onclick="toggleWindow('video-window')">Toggle Video</button>
       <button id="watch-toggle" onclick="toggleWatchingMode()">Watching Mode</button>
-      <button id="super-secret-button" onclick="openSecretWindow()">Super Secret Button</button>
+      <button id="super-secret-button" style="display: none;" onclick="openSecretWindow()">Super Secret Button</button>
     </div>
   </div>
 
@@ -454,6 +470,17 @@
         videoWindow.classList.remove('watching-mode');
         watchToggleButton.textContent = 'Watching Mode';
       }
+
+      // Track clicks for Super Secret Button
+      watchModeClicks++;
+      if (watchModeClicks === 2) {
+        superSecretButton.style.display = 'block'; // Show the Super Secret Button
+        watchModeClicks = 0; // Reset click counter
+        if (watchModeTimer) clearTimeout(watchModeTimer); // Reset the timer
+        watchModeTimer = setTimeout(() => {
+          superSecretButton.style.display = 'none'; // Hide the button after 500 seconds
+        }, 500000); // 500 seconds
+      }
     }
 
     // Super Secret Button functionality
@@ -473,44 +500,13 @@
         </div>
       `;
 
-      const header = secretWindow.querySelector('.window-header');
-      header.addEventListener('mousedown', (e) => {
-        e.preventDefault();
-        const offsetX = e.clientX - secretWindow.offsetLeft;
-        const offsetY = e.clientY - secretWindow.offsetTop;
-
-        const onMouseMove = (e) => {
-          secretWindow.style.left = `${e.clientX - offsetX}px`;
-          secretWindow.style.top = `${e.clientY - offsetY}px`;
-        };
-
-        const onMouseUp = () => {
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-        };
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-      });
-
       document.body.appendChild(secretWindow);
 
+      // Remove the secret window after 9 seconds
       setTimeout(() => {
         secretWindow.remove();
-      }, 7000);
+      }, 9000); // 9 seconds
     }
-
-    document.getElementById('watch-toggle').addEventListener('click', () => {
-      watchModeClicks++;
-      if (watchModeClicks === 2) {
-        superSecretButton.style.display = 'block';
-        watchModeClicks = 0;
-        if (watchModeTimer) clearTimeout(watchModeTimer);
-        watchModeTimer = setTimeout(() => {
-          superSecretButton.style.display = 'none';
-        }, 60000);
-      }
-    });
   </script>
 </body>
 </html>
