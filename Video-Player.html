@@ -451,11 +451,18 @@
 
     function toggleWindow(windowId) {
       const window = document.querySelector(`.${windowId}`);
-      window.style.display = window.style.display === 'none' ? 'block' : 'none';
+      if (window.style.display === 'none' || window.style.display === '') {
+        window.style.display = 'block'; // Show the window
+      } else {
+        window.style.display = 'none'; // Hide the window
+      }
     }
 
     // Watching Mode functionality
     let isWatchingMode = false;
+    let watchModeClicks = 0;
+    let watchModeTimer = null;
+    const superSecretButton = document.getElementById('super-secret-button');
 
     function toggleWatchingMode() {
       const videoWindow = document.querySelector('.video-window');
@@ -484,10 +491,6 @@
     }
 
     // Super Secret Button functionality
-    let watchModeClicks = 0;
-    let watchModeTimer = null;
-    const superSecretButton = document.getElementById('super-secret-button');
-
     function openSecretWindow() {
       const secretWindow = document.createElement('div');
       secretWindow.className = 'window secret-window';
