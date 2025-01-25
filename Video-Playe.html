@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Player & Other</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      overflow: hidden;
+    }
+
+    .window {
+      position: absolute;
+      background: rgba(30, 30, 30, 0.9);
+      border: 1px solid #444;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      resize: both;
+      min-width: 200px;
+      min-height: 150px;
+    }
+
+    .window-header {
+      padding: 8px;
+      background: rgba(20, 20, 20, 0.9);
+      border-bottom: 1px solid #444;
+      cursor: move;
+      user-select: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .window-content {
+      padding: 10px;
+      height: calc(100% - 40px);
+      overflow: hidden; /* Removed scrollbars */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .notes-window {
+      width: 300px;
+      height: 250px;
+      top: 20px;
+      left: 20px;
+      display: none; /* Hidden by default */
+    }
+
+    .timer-window {
+      width: 250px;
+      height: 200px;
+      top: 20px;
+      left: 340px;
+      display: none; /* Hidden by default */
+    }
+
+    .video-window {
+      width: 400px;
+      height: 300px;
+      top: 20px;
+      left: 610px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      border: none;
+      color: #fff;
+      resize: none;
+      outline: none;
+    }
+
+    .timer-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .timer-controls .top-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .timer-controls .bottom-buttons {
+      display: flex;
+      gap: 5px;
+    }
+
+    .timer-controls button {
+      background: #444;
+      border: none;
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      flex: 1 1 auto;
+    }
+
+    .timer-controls button:hover {
+      background: #555;
+    }
+
+    .timer-display {
+      font-size: 24px;
+      margin: 10px 0;
+      text-align: center;
+      font-weight: bold;
+      color: white; /* Default color */
+    }
+
+    .timer-display.rainbow {
+      animation: rainbow-wave 1s linear infinite;
+    }
+
+    @keyframes rainbow-wave {
+      0% { color: red; }
+      14% { color: orange; }
+      28% { color: yellow; }
+      42% { color: green; }
+      57% { color: blue; }
+      71% { color: indigo; }
+      85% { color: violet; }
+      100% { color: red; }
+    }
+
+    iframe {
+      width: 100%;
+      height: calc(100% - 40px);
+      border: none;
+      background: transparent;
+    }
+
+    .global-controls {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .global-controls button {
+      background: #444;
+      border: none;
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .global-controls button:hover {
+      background: #555;
+    }
+
+    #start-timer {
+      background: green;
+      opacity: 1;
+    }
+
+    #stop-timer {
+      background: red;
+      opacity: 1;
+    }
+
+    .settings-panel {
+      display: none;
+      position: absolute;
+      top: 40px;
+      right: 10px;
+      background: rgba(30, 30, 30, 0.9);
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .settings-panel label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .settings-panel input[type="range"] {
+      width: 100%;
+    }
+
+    @keyframes flash {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .video-controls {
+      display: flex;
+      gap: 5px;
+      width: 100%;
+      align-items: center;
+    }
+
+    .video-controls input {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .video-controls button {
+      background: #444;
+      border: none;
+      color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .video-controls button:hover {
+      background: #555;
+    }
+
+    /* New CSS for Watching Mode */
+    .watching-mode .window-header,
+    .watching-mode .video-controls {
+      display: none;
+    }
+
+    .watching-mode .window-content {
+      padding: 0;
+      height: 100%;
+    }
+
+    .watching-mode iframe {
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <!-- Notes Window -->
+  <div class="window notes-window">
+    <div class="window-header">
+      <span>Notes</span>
+    </div>
+    <div class="window-content">
+      <textarea placeholder="Type your notes here..."></textarea>
+    </div>
+  </div>
+
+  <!-- Timer Window -->
+  <div class="window timer-window">
+    <div class="window-header">
+      <span>Stop Timer</span>
+    </div>
+    <div class="window-content">
+      <div class="timer-controls">
+        <div class="top-buttons">
+          <button id="add-1">+1</button>
+          <button id="add-5">+5</button>
+          <button id="add-10">+10</button>
+        </div>
+        <div class="timer-display" id="timer-display">00:00:00</div>
+        <div class="bottom-buttons">
+          <button id="start-timer">Start</button>
+          <button id="pause-timer">Pause</button>
+          <button id="stop-timer">Stop</button>
+          <button id="reset-timer">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Window -->
+  <div class="window video-window">
+    <div class="window-header">
+      <span>Website Player</span>
+    </div>
+    <div class="window-content">
+      <div class="video-controls">
+        <input type="text" id="video-url" placeholder="Enter any website URL">
+        <button id="load-video">▶️</button>
+      </div>
+      <iframe id="video-frame" src="" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <!-- Global Controls -->
+  <div class="global-controls">
+    <button onclick="toggleSettings()">⚙️</button>
+    <div class="settings-panel" id="global-settings">
+      <label for="global-opacity">Transparency:</label>
+      <input type="range" id="global-opacity" min="0" max="1" step="0.1" value="0.9" oninput="setGlobalOpacity(this.value)">
+      <button onclick="toggleWindow('notes-window')">Toggle Notes</button>
+      <button onclick="toggleWindow('timer-window')">Toggle Timer</button>
+      <button onclick="toggleWindow('video-window')">Toggle Video</button>
+      <button id="watch-toggle" onclick="toggleWatchingMode()">Watching Mode</button>
+    </div>
+  </div>
+
+  <script>
+    // Make windows draggable
+    const windows = document.querySelectorAll('.window');
+    windows.forEach(window => {
+      const header = window.querySelector('.window-header');
+      header.addEventListener('mousedown', (e) => {
+        const offsetX = e.clientX - window.offsetLeft;
+        const offsetY = e.clientY - window.offsetTop;
+
+        const onMouseMove = (e) => {
+          window.style.left = `${e.clientX - offsetX}px`;
+          window.style.top = `${e.clientY - offsetY}px`;
+        };
+
+        const onMouseUp = () => {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    });
+
+    // Timer functionality
+    let timerInterval;
+    let time = 0;
+    const timerDisplay = document.getElementById('timer-display');
+
+    function updateTimer() {
+      const hours = Math.floor(time / 3600).toString().padStart(2, '0');
+      const minutes = Math.floor((time % 3600) / 60).toString().padStart(2, '0');
+      const seconds = (time % 60).toString().padStart(2, '0');
+      timerDisplay.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    function timerEnd() {
+      // Flash the timer display 3 times
+      let flashCount = 0;
+      const flashInterval = setInterval(() => {
+        timerDisplay.style.visibility = timerDisplay.style.visibility === 'hidden' ? 'visible' : 'hidden';
+        flashCount++;
+        if (flashCount >= 6) { // 3 flashes (on/off)
+          clearInterval(flashInterval);
+          timerDisplay.style.visibility = 'visible';
+        }
+      }, 200);
+
+      // Add rainbow effect for 5 seconds
+      timerDisplay.classList.add('rainbow');
+      setTimeout(() => {
+        timerDisplay.classList.remove('rainbow');
+      }, 5000); // 5 seconds
+
+      // Play sound at 30% volume
+      const sound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/09/audio_3ddd1e5402.mp3?filename=bomb-countdown-beeps-6868.mp3');
+      sound.volume = 0.3; // 30% volume
+      sound.play();
+    }
+
+    document.getElementById('start-timer').addEventListener('click', () => {
+      if (!timerInterval) {
+        timerInterval = setInterval(() => {
+          time--;
+          if (time <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            time = 0;
+            timerEnd();
+          }
+          updateTimer();
+        }, 1000);
+      }
+    });
+
+    document.getElementById('pause-timer').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    });
+
+    document.getElementById('stop-timer').addEventListener('click', () => {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      time = 0;
+      updateTimer();
+    });
+
+    document.getElementById('reset-timer').addEventListener('click', () => {
+      time = 0;
+      updateTimer();
+    });
+
+    document.getElementById('add-1').addEventListener('click', () => {
+      time += 60;
+      updateTimer();
+    });
+
+    document.getElementById('add-5').addEventListener('click', () => {
+      time += 300;
+      updateTimer();
+    });
+
+    document.getElementById('add-10').addEventListener('click', () => {
+      time += 600;
+      updateTimer();
+    });
+
+    // Video player functionality
+    document.getElementById('load-video').addEventListener('click', () => {
+      const url = document.getElementById('video-url').value;
+      if (url) {
+        // Load the URL directly into the iframe
+        document.getElementById('video-frame').src = url;
+      }
+    });
+
+    // Global settings functionality
+    function toggleSettings() {
+      const settingsPanel = document.getElementById('global-settings');
+      settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function setGlobalOpacity(opacity) {
+      windows.forEach(window => {
+        window.style.opacity = opacity;
+      });
+    }
+
+    function toggleWindow(windowId) {
+      const window = document.querySelector(`.${windowId}`);
+      window.style.display = window.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Watching Mode functionality
+    let isWatchingMode = false;
+
+    function toggleWatchingMode() {
+      const videoWindow = document.querySelector('.video-window');
+      const watchToggleButton = document.getElementById('watch-toggle');
+
+      isWatchingMode = !isWatchingMode;
+
+      if (isWatchingMode) {
+        videoWindow.classList.add('watching-mode');
+        watchToggleButton.textContent = 'Changing Video';
+      } else {
+        videoWindow.classList.remove('watching-mode');
+        watchToggleButton.textContent = 'Watching Mode';
+      }
+    }
+  </script>
+</body>
+</html>
