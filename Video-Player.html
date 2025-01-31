@@ -297,7 +297,7 @@
   <!-- Video Window -->
   <div class="window video-window">
     <div class="window-header">
-      <span>Video Player</span> <!-- Renamed to "Video Player" -->
+      <span>Video Player</span>
     </div>
     <div class="window-content">
       <div class="video-controls">
@@ -433,7 +433,7 @@
       const videoFrame = document.getElementById('video-frame');
 
       if (url) {
-        // Check if the URL is a YouTube link
+        // Check for YouTube URLs
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
           const videoId = extractYouTubeVideoId(url);
           if (videoId) {
@@ -441,8 +441,18 @@
           } else {
             alert('Invalid YouTube URL. Please enter a valid YouTube link.');
           }
-        } else {
-          // Load the URL directly into the iframe
+        }
+        // Check for Twitch URLs
+        else if (url.includes('twitch.tv')) {
+          const embedUrl = getTwitchEmbedUrl(url);
+          if (embedUrl) {
+            videoFrame.src = embedUrl;
+          } else {
+            alert('Invalid Twitch URL. Please enter a valid Twitch channel, video, or clip URL.');
+          }
+        }
+        // Handle other URLs
+        else {
           videoFrame.src = url;
         }
       }
@@ -450,10 +460,37 @@
 
     // Function to extract YouTube video ID from URL
     function extractYouTubeVideoId(url) {
-      // Regular expression to match YouTube URLs
       const regex = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
       const match = url.match(regex);
       return match ? match[1] : null;
+    }
+
+    // Function to handle Twitch URLs
+    function getTwitchEmbedUrl(url) {
+      try {
+        const parsedUrl = new URL(url);
+        const pathSegments = parsedUrl.pathname.split('/').filter(p => p);
+        let type, id;
+
+        if (pathSegments.length >= 3 && pathSegments[1] === 'v') {
+          type = 'video';
+          id = pathSegments[2];
+        } else if (pathSegments.length >= 3 && pathSegments[1] === 'clip') {
+          type = 'clip';
+          id = pathSegments[2];
+        } else if (pathSegments.length >= 1) {
+          type = 'channel';
+          id = pathSegments[0];
+        } else {
+          return null;
+        }
+
+        // Use the current hostname for the parent parameter
+        const parentHost = window.location.hostname || 'localhost';
+        return `https://player.twitch.tv/?${type}=${encodeURIComponent(id)}&parent=${parentHost}`;
+      } catch (e) {
+        return null;
+      }
     }
 
     // Global settings functionality
